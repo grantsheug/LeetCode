@@ -1,49 +1,85 @@
-bool NextStepCheck(int* nums, int numsSize, int x, int *PassArray)
+int checkOverZero(int* nums, int numsSize, int Start, int End, int *BiggestStep)
 {
-    if(x >=numsSize || PassArray[x] == 0)
+    int JumpEnd = 0;
+    //Hit Last index
+    if(Start == numsSize-1)
+    {
+        return 2;
+    }
+    else if(Start == End)
     {
         return 0;
     }
-    else if(x == numsSize-1 || PassArray[x] ==1 )
-    {
-        PassArray[x]=1;
-        return 1;
-    }
     else
     {
-        bool Pass = 0;
-        for(int i =1; i<= nums[x]; i++)
+        for(int i=Start; i<End; i++)
         {
-            if(x+i <numsSize && PassArray[x+i] == -1)
+            if(nums[i]+i >= numsSize-1)
             {
-                Pass = NextStepCheck(nums, numsSize, x+i,PassArray);
+                //Find the ans already
+                return 2;
             }
-            if(Pass == 0)
+            else if(nums[i]+i > End)
             {
-                PassArray[x+i] = 0;
-            }
-            else
-            {
-                PassArray[x+i] = 1;
-                break;
+                if(nums[i]+i > *BiggestStep)
+                {
+                    //update the farest index been touched
+                    *BiggestStep = nums[i]+i;
+                }
+                JumpEnd = 1;
             }
         }
-        return Pass;
     }
+    return JumpEnd;
 }
 
 bool canJump(int* nums, int numsSize){
-    int *PassArray;
-    PassArray = malloc(numsSize*sizeof(int));
-    for(int i=0; i < numsSize;i++)
+    int *ZeroIndex;
+    int *StartIndex;
+    int Zerocount = 0;
+    int TempStart = -1;
+    int CanJump =1;
+    int BiggestStep=0;
+    
+    ZeroIndex = malloc(numsSize * sizeof(int));
+    StartIndex = malloc(numsSize * sizeof(int));
+    //initial arr
+    for(int i=0; i<numsSize; i++)
     {
-        PassArray[i] = -1;
+        ZeroIndex[i] = -1;
+        StartIndex[i] = -1;
     }
-    NextStepCheck(nums, numsSize, 0,PassArray);
-    for(int i=0; i < numsSize;i++)
+    //search for zero
+    for(int i=0; i<numsSize; i++)
     {
-        if(PassArray[i] == 1)
-            return 1;
+        if(TempStart == -1)
+        {
+            StartIndex[Zerocount] = i;
+            TempStart =0;
+        }
+        if(nums[i]==0)
+        {
+            ZeroIndex[Zerocount] = i;
+            //printf("Start=%d, End=%d\n",StartIndex[Zerocount],ZeroIndex[Zerocount]);
+            Zerocount++;
+            TempStart = -1;
+        }
     }
-    return 0;
+    for(int i=0; i<Zerocount && CanJump==1; i++)
+    {
+        if(BiggestStep > ZeroIndex[i])
+        {
+            //Already over the zero window
+            continue;
+        }
+        CanJump = checkOverZero(nums, numsSize, StartIndex[i],ZeroIndex[i], &BiggestStep);
+        if(CanJump == 2)
+        {
+            //Find the Answer
+            CanJump = 1;
+            break;
+        }
+    }
+    //printf("Next\n");
+    return CanJump;
 }
